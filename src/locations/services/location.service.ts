@@ -72,6 +72,9 @@ export class LocationService {
         }
     }
 
+    async deleteLocation(user_id:string, _id:string) {
+        
+    }
 
 }
 
