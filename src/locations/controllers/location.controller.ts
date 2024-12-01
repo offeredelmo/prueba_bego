@@ -1,9 +1,9 @@
+import { Client, Language } from "@googlemaps/google-maps-services-js"
 import { Request, Response } from "express";
-import { CreateLocationDto, UpdateLocationDto } from "../model/locationDto";
+import { CreateLocationDto, DeleteLocationDto, UpdateLocationDto } from "../model/locationDto";
 import { ObjectId } from "mongodb";
 import { validate } from "class-validator";
 import { LocationService } from "../services/location.service";
-import { Client, Language } from "@googlemaps/google-maps-services-js";
 
 
 
@@ -17,7 +17,7 @@ export class LocationController {
     async createLocationByPlaceId(req: Request, res: Response) {
         try {
             const placeId = req.body.place_id
-            const userId = req.params.user_id
+            const userId = req.body.user_id
 
             if (!placeId) {
                 return res.status(404).json({ message: "falto un place_id" })
@@ -32,6 +32,9 @@ export class LocationController {
                 dateLocation?.geometry?.location.lng as number,
                 new ObjectId(userId)
             )
+            console.log(userId)
+            console.log(createLocationDto.user_id)
+
 
             createLocationDto.user_id = new ObjectId(createLocationDto.user_id)
 
@@ -80,9 +83,25 @@ export class LocationController {
         }
     }
 
-    async  deleteLocationById(req: Request, res: Response){
-        console.log("me borro aaaa")
-        console.log(req.user)
+    async deleteLocationById(req: Request, res: Response) {
+        try {
+            const deleteLocationDto = new DeleteLocationDto(
+                req.body._id,
+                req.body.user_id,
+                new ObjectId(req.user?._id!) //este _id hace referencia al id que viene del token que es el id del usuario
+            )
+            await this.validateDTO(deleteLocationDto, res)
+            const  result = await this.locationService.deleteLocation(deleteLocationDto)
+            if (result.deletedCount > 0) {
+                return res.status(200).send(`Location con el id: ${req.body.id} fue eliminado`);
+            }
+        } catch (error) {
+            res.status(500).json(
+                { message: `A ocurrido un error inesperado ${error}` }
+            )
+        }
+
+
     }
 
 

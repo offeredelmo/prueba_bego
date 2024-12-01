@@ -1,6 +1,6 @@
 
 import { Client, Language } from "@googlemaps/google-maps-services-js";
-import { CreateLocationDto, UpdateLocationDto } from "../model/locationDto";
+import { CreateLocationDto, DeleteLocationDto, UpdateLocationDto } from "../model/locationDto";
 import { ObjectId } from "mongodb";
 import { connectToDatabase } from "../../conectDB";
 
@@ -72,8 +72,24 @@ export class LocationService {
         }
     }
 
-    async deleteLocation(user_id:string, _id:string) {
-        
+    async deleteLocation(deleteLocationDto: DeleteLocationDto) {
+        try {
+            const locationCollection = (await connectToDatabase()).collection(this.nameCollection);
+            const location = await locationCollection.findOne(
+                {_id: new ObjectId(deleteLocationDto._id)},
+            );
+            if (!location) {
+                throw Error(`no se encontro la location con el id: ${deleteLocationDto._id}`)
+            }
+            if (deleteLocationDto.user_id_token != location.user_id && deleteLocationDto.user_id != location._id) {
+                throw Error(`No tienes permiso para eliminar esta ubicación`)
+            }
+            const result = await locationCollection.deleteOne({_id:deleteLocationDto._id})
+          
+            return result;
+        } catch (error) {
+            throw new Error("Error al eliminar")
+        }
     }
 
 }

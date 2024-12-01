@@ -80,3 +80,29 @@ export class UpdateLocationDto {
         this.user_id = user_id
     }
 }
+
+export class DeleteLocationDto {
+    @IsOptional()
+    @IsNotEmpty()
+    _id?: ObjectId;
+   
+    @IsOptional()
+    @IsNotEmpty()
+    user_id: ObjectId;
+
+    @IsOptional()
+    @IsNotEmpty()
+    user_id_token: ObjectId;
+
+    constructor(
+        _id: ObjectId,
+        user_id: ObjectId,
+        user_id_token: ObjectId
+    ) {
+      
+        this._id = _id
+        this.user_id = user_id
+        this.user_id_token = user_id_token
+    }
+}
+
