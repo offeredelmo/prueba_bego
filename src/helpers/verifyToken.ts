@@ -1,9 +1,14 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from "jsonwebtoken";
 
-interface TokenPayload {
-    _id: string;
+interface InfoUser {
+    user: string;
     email: string;
+}
+interface TokenPayload {
+    data: InfoUser,
+    iat: number,
+    exp: number
 }
 
 declare global {
@@ -34,12 +39,11 @@ export const validateToken = async (req: Request, res: Response, next: NextFunct
             res.status(500).send({ error: "A ocurrido un error inesperado" });
             return
         }
-        const tokenData = jwt.verify(token, process.env.JWT_KEY!) as TokenPayload;
-
+        const tokenData = jwt.verify(token, process.env.JWT_KEY!) as TokenPayload
+        req.user = tokenData
         console.log("Información del token:");
-        req.user = tokenData;
         console.log(tokenData);
-
+        console.log(tokenData);
         next();
     } catch (error:any) {
         console.error("Error al verificar el token:", error);

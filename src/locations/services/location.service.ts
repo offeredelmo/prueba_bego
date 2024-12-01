@@ -1,16 +1,13 @@
 
-import { Client, Language } from "@googlemaps/google-maps-services-js";
 import { CreateLocationDto, DeleteLocationDto, UpdateLocationDto } from "../model/locationDto";
 import { ObjectId } from "mongodb";
 import { connectToDatabase } from "../../conectDB";
+import { NotFoudError, UnauthorizedError } from "../../errors";
 
 export class LocationService {
 
     nameCollection = "location"
-    private client: Client;
-    constructor() {
-        this.client = new Client({});
-    }
+
 
     async createLocationByPlaceId(createLocationDto: CreateLocationDto) {
         try {
@@ -48,19 +45,19 @@ export class LocationService {
             const locationCollection = (await connectToDatabase()).collection(this.nameCollection);
 
             const location = await locationCollection.findOne(
-                {_id: new ObjectId(_id)},
+                { _id: new ObjectId(_id) },
             );
             if (!location) {
-                throw Error(`no se encontro la location con el id: ${_id}`)
+                throw new NotFoudError(`no se encontro la location con el id: ${_id}`)
             }
 
             const update = Object.fromEntries( //elimina los atributos undefined
                 Object.entries(updateLocationDto).filter(([_, value]) => value !== undefined)
             );
-        
+
             const result = await locationCollection.updateOne(
-                {_id: new ObjectId(_id)},
-                {$set: update}
+                { _id: new ObjectId(_id) },
+                { $set: update }
             );
 
             if (result.matchedCount === 0) {
@@ -76,24 +73,25 @@ export class LocationService {
         try {
             const locationCollection = (await connectToDatabase()).collection(this.nameCollection);
             const location = await locationCollection.findOne(
-                {_id: new ObjectId(deleteLocationDto._id)},
+                { _id: new ObjectId(deleteLocationDto._id) },
             );
             if (!location) {
-                throw Error(`no se encontro la location con el id: ${deleteLocationDto._id}`)
+                throw new NotFoudError(`no se encontro la location con el id: ${deleteLocationDto._id}`)
             }
-            if (deleteLocationDto.user_id_token != location.user_id && deleteLocationDto.user_id != location._id) {
-                throw Error(`No tienes permiso para eliminar esta ubicación`)
+            console.log(deleteLocationDto.user_id_token)
+            console.log(location.user_id)
+            if (`${deleteLocationDto.user_id_token}` == `${location.user_id}`) {
+                console.log(deleteLocationDto._id)
+                return await locationCollection.deleteOne({ _id: new ObjectId(deleteLocationDto._id) })
+            } else {
+                throw new UnauthorizedError(`No tienes permiso para eliminar esta ubicación`)
             }
-            const result = await locationCollection.deleteOne({_id:deleteLocationDto._id})
-          
-            return result;
         } catch (error) {
-            throw new Error("Error al eliminar")
+            throw error;
         }
     }
 
 }
-
 
 
 

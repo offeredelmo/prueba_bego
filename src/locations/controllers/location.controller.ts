@@ -4,6 +4,7 @@ import { CreateLocationDto, DeleteLocationDto, UpdateLocationDto } from "../mode
 import { ObjectId } from "mongodb";
 import { validate } from "class-validator";
 import { LocationService } from "../services/location.service";
+import { NotFoudError, UnauthorizedError } from "../../errors";
 
 
 
@@ -77,6 +78,9 @@ export class LocationController {
             const result = await this.locationService.updateLocation(_id, updateLocationDto)
             return res.status(200).json({ message: "actualizado" })
         } catch (error) {
+            if (error instanceof NotFoudError) {
+                return res.status(404).send({ error: error.message });
+            }
             res.status(500).json(
                 { message: `A ocurrido un error inesperado ${error}` }
             )
@@ -85,20 +89,28 @@ export class LocationController {
 
     async deleteLocationById(req: Request, res: Response) {
         try {
+            console.log("aqui esta la info del token ")
+            console.log(req.user?.data.user)
             const deleteLocationDto = new DeleteLocationDto(
                 req.body._id,
                 req.body.user_id,
-                new ObjectId(req.user?._id!) //este _id hace referencia al id que viene del token que es el id del usuario
+                new ObjectId(req.user?.data.user) //este _id hace referencia al id que viene del token que es el id del usuario
             )
             await this.validateDTO(deleteLocationDto, res)
-            const  result = await this.locationService.deleteLocation(deleteLocationDto)
+            const result = await this.locationService.deleteLocation(deleteLocationDto)
+            console.log(result);
             if (result.deletedCount > 0) {
-                return res.status(200).send(`Location con el id: ${req.body.id} fue eliminado`);
+                return res.status(200).send(`Location con el id: ${req.body._id} fue eliminado`);
             }
         } catch (error) {
-            res.status(500).json(
-                { message: `A ocurrido un error inesperado ${error}` }
-            )
+            if (error instanceof NotFoudError) {
+                return res.status(404).send({ error: error.message });
+            } else if (error instanceof UnauthorizedError) {
+                return res.status(403).send({ error: error.message });
+            } else {
+                console.error("Error inesperado:", error);
+                return res.status(500).send({ error: "Ocurrió un error inesperado" });
+            }
         }
 
 
