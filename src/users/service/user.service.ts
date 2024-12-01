@@ -9,7 +9,6 @@ export class UserService {
     async createUser(createUserDto: CreateUserDtoAndLogin) {
         try {
             const passwordHash = await bcrypt.hash(createUserDto.password, 10);
-            console.log("Hola se ejecuta el servicio")
             const userCollection = (await connectToDatabase()).collection(this.nameCollection);
             const newUser = {
                 email: createUserDto.email,
@@ -18,7 +17,6 @@ export class UserService {
             const result = await userCollection.insertOne(newUser)
             return { message: '  Usuario creado', id: result.insertedId, email: newUser.email }
         } catch (error: any) {
-            console.log(error)
             if (error.code === 11000) {
                 throw new Error(`El correo electrónico ${error.keyValue["email"]} ya está registrado.`);
             }
@@ -32,7 +30,6 @@ export class UserService {
             //primero obtener por correo al usuario
             const userCollection = (await connectToDatabase()).collection(this.nameCollection);
             const user = await userCollection.findOne({ email: loginUserDto.email })
-            console.log(user)
             if (!user) {
                 throw Error("error de credenciales") //no se encontro el usuario
             }
@@ -42,9 +39,13 @@ export class UserService {
                 throw Error("error de credenciales")
             }
             if (!process.env.JWT_KEY) { return Error("Falta agregar la JWT_KEY") }
-
+            const payload = {
+                user: user._id,
+                email: user.email
+                
+            }
             const token = jwt.sign(
-                { data: user.email },
+                { data: payload },
                 process.env.JWT_KEY || "",
                 { expiresIn: "1h" }
             );

@@ -1,6 +1,5 @@
 import { IsEmail, validate } from "class-validator";
 import { CreateUserDtoAndLogin } from "../model/user.dto";
-import { plainToInstance } from "class-transformer";
 import { Request, Response } from "express";
 import { UserService } from "../service/user.service";
 
