@@ -1,5 +1,7 @@
-import express from "express";
 import { LocationController } from "./controllers/location.controller";
+import { validateToken } from "../helpers/verifyToken";
+import express, { Request, Response } from 'express';
+
 
 export const locationRoutes = express.Router();
 const locationController = new LocationController();
@@ -27,3 +29,17 @@ locationRoutes.patch('/', async (req, res, next) => {
         next(error); // Pasar errores al middleware de manejo de errores
     }
 });
+
+
+locationRoutes.delete(
+    '/',
+    validateToken, // Middleware correcto
+    async (req, res, next) => {
+        try {
+            await locationController.deleteLocationById(req, res);
+        } catch (error) {
+            next(error); // Pasar errores al middleware de manejo de errores
+        }
+    }
+);
+

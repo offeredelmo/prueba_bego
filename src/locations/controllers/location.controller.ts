@@ -1,9 +1,9 @@
 import { Request, Response } from "express";
-import { Client, Language } from "@googlemaps/google-maps-services-js";
 import { CreateLocationDto, UpdateLocationDto } from "../model/locationDto";
 import { ObjectId } from "mongodb";
 import { validate } from "class-validator";
 import { LocationService } from "../services/location.service";
+import { Client, Language } from "@googlemaps/google-maps-services-js";
 
 
 
@@ -78,6 +78,11 @@ export class LocationController {
                 { message: `A ocurrido un error inesperado ${error}` }
             )
         }
+    }
+
+    async  deleteLocationById(req: Request, res: Response){
+        console.log("me borro aaaa")
+        console.log(req.user)
     }
 
 

@@ -2,34 +2,48 @@ import { Request, Response, NextFunction } from 'express';
 import jwt from "jsonwebtoken";
 
 interface TokenPayload {
-    uuid: string;
+    _id: string;
     email: string;
+}
+
+declare global {
+    namespace Express {
+        interface Request {
+            user?: TokenPayload;
+        }
+    }
 }
 
 
 //middleware pa verificar tokenn
-export const validateToken = async (req: Request, res: Response, next: NextFunction) => {
+export const validateToken = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     if (!req.headers.authorization) {
-        return res.status(400).send({ error: "No hay token" });
+        res.status(400).send({ error: "No hay token" });
+        return
     }
 
     const token = req.headers.authorization.split(' ').pop() as string;
 
     if (!token) {
-        return res.status(400).send({ error: "Token no encontrado" });
+        res.status(400).send({ error: "Token no encontrado" });
+        return
     }
 
     try {
-        const tokenData = jwt.verify(token, process.env.KEY_TOKEN!) as TokenPayload;
+        if (!process.env.JWT_KEY) {
+            res.status(500).send({ error: "A ocurrido un error inesperado" });
+            return
+        }
+        const tokenData = jwt.verify(token, process.env.JWT_KEY!) as TokenPayload;
 
         console.log("Información del token:");
-
-        req.push(tokenData)
+        req.user = tokenData;
         console.log(tokenData);
 
         next();
-    } catch (error) {
+    } catch (error:any) {
         console.error("Error al verificar el token:", error);
-        return res.status(401).send({ error: "Token inválido" });
+        res.status(401).send({ error: `Error ${error.message}` });
+        return
     }
 };
