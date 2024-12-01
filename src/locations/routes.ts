@@ -19,3 +19,11 @@ locationRoutes.get('/', async (req, res, next) => {
         next(error); // Pasar errores al middleware de manejo de errores
     }
 });
+
+locationRoutes.patch('/', async (req, res, next) => {
+    try {
+        await locationController.updateLocation(req, res);
+    } catch (error) {
+        next(error); // Pasar errores al middleware de manejo de errores
+    }
+});

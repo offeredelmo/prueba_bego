@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { Client, Language } from "@googlemaps/google-maps-services-js";
-import { CreateLocationDto } from "../model/locationDto";
+import { CreateLocationDto, UpdateLocationDto } from "../model/locationDto";
 import { ObjectId } from "mongodb";
 import { validate } from "class-validator";
 import { LocationService } from "../services/location.service";
@@ -34,10 +34,9 @@ export class LocationController {
             )
 
             createLocationDto.user_id = new ObjectId(createLocationDto.user_id)
-            const validateDto = await validate(createLocationDto)
-            if (validateDto.length > 0) {
-                return res.status(400).json({ message: 'Validation failed', errors: validateDto })
-            }
+
+            await this.validateDTO(createLocationDto, res)
+
             const result = await this.locationService.createLocationByPlaceId(createLocationDto)
             return res.status(201).json(result)
 
@@ -57,8 +56,28 @@ export class LocationController {
 
     }
 
-    async deleteLocation(req: Request, res: Response) {
+    async updateLocation(req: Request, res: Response) {
+        try {
+            const _id = req.body._id
+            if (!_id) {
+                return res.status(404).json({ message: "falta el _id" })
+            }
+            const updateLocationDto = new UpdateLocationDto(
+                req.body.address,
+                req.body.place_id,
+                req.body.latitude,
+                req.body.longitude,
+                req.body.user_id
+            )
 
+            await this.validateDTO(updateLocationDto, res)
+            const result = await this.locationService.updateLocation(_id, updateLocationDto)
+            return res.status(200).json({ message: "actualizado" })
+        } catch (error) {
+            res.status(500).json(
+                { message: `A ocurrido un error inesperado ${error}` }
+            )
+        }
     }
 
 
@@ -78,6 +97,13 @@ export class LocationController {
             return response.data.result; // Retorna los detalles del lugar
         } catch (error: any) {
             res.status(404).json({ message: `Failed to fetch details for placeId ${placeId}` })
+        }
+    }
+
+    async validateDTO(dto: any, res: Response) {
+        const validateDto = await validate(dto)
+        if (validateDto.length > 0) {
+            throw res.status(400).json({ message: 'Validation failed', errors: validateDto })
         }
     }
 
