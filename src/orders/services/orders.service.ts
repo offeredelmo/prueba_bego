@@ -80,12 +80,28 @@ export class OrderService {
         if (orderChanged === null) {
             throw new NotFoudError(`no se encontro la orden con el id: ${updateStatusDto._id}`)
         }
-        console.log("acabe")
         console.log(orderChanged)
      
         } catch (error) {
             throw error
         }
+    }
+
+    async deleteOrder(_id: string) {
+       try {
+        const orderCollection = (await connectToDatabase()).collection(this.ordersCollection)
+
+        const deleteOrder = await orderCollection.findOneAndDelete(
+            {_id: new ObjectId(_id)}
+        )
+        console.log(deleteOrder)
+        if (deleteOrder === null) {
+            throw new NotFoudError(`no se encontro la orden con el id: ${_id}`)
+        }
+        return deleteOrder
+       } catch (error) {
+        throw error
+       }
     }
 
 }

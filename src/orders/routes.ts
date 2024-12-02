@@ -22,7 +22,7 @@ orderRoutes.get('/', async (req, res, next) => {
 });
 
 
-orderRoutes.delete('/', async (req, res, next) => {
+orderRoutes.delete('/:_id', async (req, res, next) => {
     try {
         await locationController.deleteOrder(req, res);
     } catch (error) {

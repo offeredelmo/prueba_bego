@@ -4,6 +4,7 @@ import { StatusOrders } from "../model/ordersDto";
 import { OrderService } from "../services/orders.service";
 import { Request, Response } from "express";
 import { NotFoudError } from "../../errors";
+import { ObjectId } from "mongodb";
 
 
 export class OrderController {
@@ -51,6 +52,22 @@ export class OrderController {
     }
 
     async deleteOrder(req: Request, res: Response) {
+        try {
+            const _id = req.params._id
+            if (!_id) {
+                return res.status(400).json({ message: "falta mandar el _id" });
+            }
+            if (!ObjectId.isValid(_id)) {
+                return res.status(400).json({ message: "debe de ser un _id valido" });
+            }
+            await this.orderService.deleteOrder(_id)
+            return res.status(200).json({ message: `orden con el id: ${_id}eliminada` })
+        } catch (error) {
+            if (error instanceof NotFoudError) {
+                return res.status(404).send({ error: error.message });
+            }
+            return res.status(500).json({ message: "Ha ocurrido un error inesperado" });
+        }
 
     }
 
@@ -61,7 +78,7 @@ export class OrderController {
                 req.body.status
             );
             await this.validateDTO(updateStatusDto, res)
-            const result = await this.orderService.changeStatus(updateStatusDto)
+            await this.orderService.changeStatus(updateStatusDto)
             return res.status(200).json({ message: "actualizado" })
 
         } catch (error) {
