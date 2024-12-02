@@ -23,7 +23,9 @@ export class LocationController {
             if (!placeId) {
                 return res.status(404).json({ message: "falto un place_id" })
             }
-
+            if (!ObjectId.isValid(userId)) {
+                return res.status(400).json({ message: "debe de ser un _id valido" });
+            }
             const dateLocation = await this.getPlaceDetails(placeId, res);
 
             const createLocationDto = new CreateLocationDto(
