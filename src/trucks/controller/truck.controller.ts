@@ -3,6 +3,7 @@ import { CreateTruckDTO, UpdateTruckDTO } from "../model/truck.dto";
 import { validate } from "class-validator";
 import { TruckService } from "../services/truck.service";
 import { ObjectId } from "mongodb";
+import { BadRequestError, NotFoudError } from "../../errors";
 
 export class TruckController {
 
@@ -65,11 +66,11 @@ export class TruckController {
             const id = req.params.id;
     
             if (!id) {
-                return res.status(400).json({ message: "Es necesario ingresar el atributo _id" });
+                return new BadRequestError("Es necesario ingresar el atributo _id")
             }
     
             if (!ObjectId.isValid(id)) {
-                return res.status(400).json({ message: "El _id proporcionado no es válido" });
+                return new BadRequestError("El _id proporcionado no es válido" )
             }
     
             const result = await this.truckService.deleteTruck(id);
@@ -77,7 +78,7 @@ export class TruckController {
             if (result.deletedCount > 0) {
                 return res.status(202).send(`El truck con el id: ${id} fue eliminado`);
             } else {
-                return res.status(404).send(`El truck con el id: ${id} no existe`);
+                throw  new NotFoudError(`El truck con el id: ${id} no existe`);
             }
         } catch (error: any) {
             return res.status(500).json({ message: `Ha ocurrido un error inesperado: ${error.message}` });
