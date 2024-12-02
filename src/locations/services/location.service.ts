@@ -26,18 +26,23 @@ export class LocationService {
                 longitude: createLocationDto.longitude,
                 user_id: createLocationDto.user_id
             };
-        } catch (error: any) {
-            console.error("Error en el servicio al crear la ubicación:", error);
-            throw new Error("Error al guardar la ubicación");
+        } catch (error) {
+           throw error
         }
     }
 
 
 
     async listLocations() {
-        const userCollection = (await connectToDatabase()).collection(this.nameCollection);
+        try {
+             const userCollection = (await connectToDatabase()).collection(this.nameCollection);
         const result = await userCollection.find({}).toArray();
         return result;
+        } catch (error) {
+           throw error
+            
+        }
+       
     }
 
     async updateLocation(_id: string, updateLocationDto: UpdateLocationDto) {
@@ -65,7 +70,8 @@ export class LocationService {
             }
             return result.matchedCount
         } catch (error) {
-            throw new Error("Error al actualizar");
+            throw error
+
         }
     }
 
@@ -87,7 +93,7 @@ export class LocationService {
                 throw new UnauthorizedError(`No tienes permiso para eliminar esta ubicación`)
             }
         } catch (error) {
-            throw error;
+            throw error
         }
     }
 

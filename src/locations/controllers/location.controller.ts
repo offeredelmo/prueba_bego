@@ -4,7 +4,7 @@ import { CreateLocationDto, DeleteLocationDto, UpdateLocationDto } from "../mode
 import { ObjectId } from "mongodb";
 import { validate } from "class-validator";
 import { LocationService } from "../services/location.service";
-import { NotFoudError, UnauthorizedError } from "../../errors";
+import { errorHandler, NotFoudError, UnauthorizedError } from "../../errors";
 
 
 
@@ -44,8 +44,8 @@ export class LocationController {
             const result = await this.locationService.createLocationByPlaceId(createLocationDto)
             return res.status(201).json(result)
 
-        } catch (error) {
-            return res.status(500).json({ message: "Ha ocurrido un error inesperado" });
+        } catch (error: any) {
+            errorHandler(error, req, res)
         }
     }
 
@@ -54,8 +54,8 @@ export class LocationController {
         try {
             const result = await this.locationService.listLocations()
             return res.status(201).json(result)
-        } catch (error) {
-            return res.status(500).json({ message: "Ha ocurrido un error inesperado" });
+        } catch (error: any) {
+            errorHandler(error, req, res)
         }
 
     }
@@ -77,13 +77,8 @@ export class LocationController {
             await this.validateDTO(updateLocationDto, res)
             const result = await this.locationService.updateLocation(_id, updateLocationDto)
             return res.status(200).json({ message: "actualizado" })
-        } catch (error) {
-            if (error instanceof NotFoudError) {
-                return res.status(404).send({ error: error.message });
-            }
-            res.status(500).json(
-                { message: `A ocurrido un error inesperado ${error}` }
-            )
+        } catch (error: any) {
+            errorHandler(error, req, res)
         }
     }
 
@@ -102,15 +97,8 @@ export class LocationController {
             if (result.deletedCount > 0) {
                 return res.status(200).send(`Location con el id: ${req.body._id} fue eliminado`);
             }
-        } catch (error) {
-            if (error instanceof NotFoudError) {
-                return res.status(404).send({ error: error.message });
-            } else if (error instanceof UnauthorizedError) {
-                return res.status(403).send({ error: error.message });
-            } else {
-                console.error("Error inesperado:", error);
-                return res.status(500).send({ error: "Ocurrió un error inesperado" });
-            }
+        } catch (error: any) {
+            errorHandler(error, req, res)
         }
 
 
@@ -127,12 +115,9 @@ export class LocationController {
                     language: Language.es,
                 },
             });
-            console.log(response)
-            console.log(response.data.result.geometry)
-            console.log(response.data.result.address_components)
             return response.data.result; // Retorna los detalles del lugar
-        } catch (error: any) {
-            res.status(404).json({ message: `Failed to fetch details for placeId ${placeId}` })
+        } catch (error) {
+            throw error
         }
     }
 
