@@ -15,7 +15,7 @@ export class LocationService {
     async createLocationByPlaceId(createLocationDto: CreateLocationDto) {
         try {
             const userCollection = (await connectToDatabase()).collection(this.userCollection);
-            const user = await userCollection.findOne({_id: new ObjectId(createLocationDto.user_id)})
+            const user = await userCollection.findOne({ _id: new ObjectId(createLocationDto.user_id) })
             if (!user) {
                 throw new NotFoudError(`No se encontro el usuario con el id: ${createLocationDto.user_id}`)
             }
@@ -36,42 +36,49 @@ export class LocationService {
                 user_id: createLocationDto.user_id
             };
         } catch (error) {
-           throw error
+            throw error
         }
     }
 
 
 
-    async listLocations() {
+    async listLocations(userId: string) {
         try {
-             const userCollection = (await connectToDatabase()).collection(this.locationCollection);
-        const result = await userCollection.find({}).toArray();
-        return result;
+            const userCollection = (await connectToDatabase()).collection(this.locationCollection);
+            const result = await userCollection.find({ user_id: new ObjectId(userId) }).toArray();
+            return result;
         } catch (error) {
-           throw error
-            
+            throw error
+
         }
-       
+
     }
 
-    async updateLocation(_id: string, updateLocationDto: UpdateLocationDto) {
+    async updateLocation(_id: string, userId:string, updateLocationDto: UpdateLocationDto) {
         try {
             const locationCollection = (await connectToDatabase()).collection(this.locationCollection);
 
+            const location = await locationCollection.findOne({_id: new ObjectId(_id)})
+            if (!location) {
+                throw new NotFoudError(`no se encontro la location con el id: ${_id}`)
+            }
             const update = Object.fromEntries( //elimina los atributos undefined
                 Object.entries(updateLocationDto).filter(([_, value]) => value !== undefined)
             );
-
-            const result = await locationCollection.findOneAndUpdate(
+            if (`${userId}` == `${location.user_id }`) {
+                const result = await locationCollection.findOneAndUpdate(
                 { _id: new ObjectId(_id) },
                 { $set: update }
             );
-
             if (result === null) {
                 throw new NotFoudError(`no se encontro la location con el id: ${_id}`)
             }
-            console.log(result)
             return result
+            } else {
+                throw new UnauthorizedError(`No tienes permiso para eliminar esta ubicación`)
+            }
+           
+            
         } catch (error) {
             throw error
 
@@ -101,6 +108,5 @@ export class LocationService {
     }
 
 }
-
 
 

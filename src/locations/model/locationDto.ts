@@ -107,4 +107,3 @@ export class DeleteLocationDto {
         this.user_id_token = user_id_token
     }
 }
-

@@ -23,7 +23,9 @@ export class LocationController {
             if (!placeId) {
                 return res.status(404).json({ message: "falto un place_id" })
             }
-
+            if (!ObjectId.isValid(userId)) {
+                return res.status(400).json({ message: "debe de ser un _id valido" });
+            }
             const dateLocation = await this.getPlaceDetails(placeId, res);
 
             const createLocationDto = new CreateLocationDto(
@@ -52,7 +54,13 @@ export class LocationController {
 
     async listLocations(req: Request, res: Response) {
         try {
-            const result = await this.locationService.listLocations()
+            if (!req.user?.data.user) {
+                return res.status(404).json({ message: "es necesario el user_id" })
+            }
+            if (!ObjectId.isValid(req.user?.data.user)) {
+                return res.status(400).json({ message: "debe de ser un _id valido" });
+            }
+            const result = await this.locationService.listLocations(req.user?.data.user)
             return res.status(201).json(result)
         } catch (error: any) {
             errorHandler(error, req, res)
@@ -64,6 +72,12 @@ export class LocationController {
         try {
             const _id = req.body._id
             const placeId = req.body.place_id
+            if (!req.user?.data.user) {
+                return res.status(404).json({ message: "es necesario el user_id" })
+            }
+            if (!ObjectId.isValid(req.user?.data.user)) {
+                return res.status(400).json({ message: "debe de ser un _id valido" });
+            }
             if (!placeId) {
                 return res.status(404).json({ message: "falto un place_id" })
             }
@@ -77,7 +91,7 @@ export class LocationController {
             )
 
             await this.validateDTO(updateLocationDto, res)
-            const location = await this.locationService.updateLocation(_id, updateLocationDto)
+            const location = await this.locationService.updateLocation(_id, req.user?.data.user, updateLocationDto)
             return res.status(200).json({ message: "actualizado", location  })
         } catch (error: any) {
             errorHandler(error, req, res)
