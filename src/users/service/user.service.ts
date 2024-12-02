@@ -48,7 +48,7 @@ export class UserService {
             const token = jwt.sign(
                 { data: payload },
                 process.env.JWT_KEY || "",
-                { expiresIn: "1h" }
+                { expiresIn: "10d" }
             );
             return { _id: user._id, email: user.email, token: token }
 

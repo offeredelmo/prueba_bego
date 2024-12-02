@@ -14,7 +14,9 @@ locationRoutes.post('/add', async (req, res, next) => {
     }
 });
 
-locationRoutes.get('/', async (req, res, next) => {
+locationRoutes.get('/',
+    validateToken,
+    async (req, res, next) => {
     try {
         await locationController.listLocations(req, res);
     } catch (error) {
@@ -22,7 +24,9 @@ locationRoutes.get('/', async (req, res, next) => {
     }
 });
 
-locationRoutes.patch('/', async (req, res, next) => {
+locationRoutes.patch('/',
+    validateToken,
+    async (req, res, next) => {
     try {
         await locationController.updateLocation(req, res);
     } catch (error) {
