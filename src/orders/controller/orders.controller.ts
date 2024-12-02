@@ -3,7 +3,7 @@ import { CreateOrderDto, UpdateOrderDto, UpdateStatusDto } from "../model/order.
 import { StatusOrders } from "../model/ordersDto";
 import { OrderService } from "../services/orders.service";
 import { Request, Response } from "express";
-import { NotFoudError } from "../../errors";
+import { errorHandler, NotFoudError } from "../../errors";
 import { ObjectId } from "mongodb";
 import { plainToInstance } from "class-transformer";
 import "reflect-metadata";
@@ -23,12 +23,8 @@ export class OrderController {
             await this.validateDTO(createOrderDto, res)
             const result = await this.orderService.createOrder(createOrderDto)
             res.status(201).json({ message: "se agrego con exito", result })
-        } catch (error) {
-            console.log(error)
-            if (error instanceof NotFoudError) {
-                return res.status(404).send({ error: error.message });
-            }
-            return res.status(500).json({ message: "Ha ocurrido un error inesperado" });
+        } catch (error:any) {
+            errorHandler(error, req,res)
         }
     }
 
@@ -41,8 +37,8 @@ export class OrderController {
                 return res.status(200).json({ message: "succes", orders })
 
             }
-        } catch (error) {
-            return res.status(500).json({ message: "Ha ocurrido un error inesperado" });
+        } catch (error:any) {
+            errorHandler(error, req,res)
         }
     }
     async updateOrder(req: Request, res: Response) {
@@ -61,12 +57,8 @@ export class OrderController {
             const order = await this.orderService.updateOrderById(updateOrderDto);
 
             return res.status(200).json({ message: "Actualizado", order });
-        } catch (error) {
-            console.error(error);
-            if (error instanceof NotFoudError) {
-                return res.status(404).send({ error: error.message });
-            }
-            return res.status(500).json({ message: "Ha ocurrido un error inesperado" });
+        } catch (error:any) {
+            errorHandler(error, req,res)
         }
     }
     async deleteOrder(req: Request, res: Response) {
@@ -80,11 +72,8 @@ export class OrderController {
             }
             await this.orderService.deleteOrder(_id)
             return res.status(200).json({ message: `orden con el id: ${_id}eliminada` })
-        } catch (error) {
-            if (error instanceof NotFoudError) {
-                return res.status(404).send({ error: error.message });
-            }
-            return res.status(500).json({ message: "Ha ocurrido un error inesperado" });
+        } catch (error:any) {
+            errorHandler(error, req,res)
         }
 
     }
@@ -99,12 +88,8 @@ export class OrderController {
             await this.orderService.changeStatus(updateStatusDto)
             return res.status(200).json({ message: "actualizado" })
 
-        } catch (error) {
-            console.log(error)
-            if (error instanceof NotFoudError) {
-                return res.status(404).send({ error: error.message });
-            }
-            return res.status(500).json({ message: "Ha ocurrido un error inesperado" });
+        } catch (error:any) {
+            errorHandler(error, req,res)
         }
     }
 
