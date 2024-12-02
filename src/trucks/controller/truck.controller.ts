@@ -3,7 +3,7 @@ import { CreateTruckDTO, UpdateTruckDTO } from "../model/truck.dto";
 import { validate } from "class-validator";
 import { TruckService } from "../services/truck.service";
 import { ObjectId } from "mongodb";
-import { BadRequestError, NotFoudError } from "../../errors";
+import { BadRequestError, errorHandler, NotFoudError } from "../../errors";
 
 export class TruckController {
 
@@ -20,10 +20,8 @@ export class TruckController {
             await this.validateDTO(createTruckDto, res)
             const newTruck = await this.truckService.createTruck(createTruckDto)
             return res.status(201).json(newTruck)
-        } catch (error) {
-            res.status(500).json(
-                { message: `A ocurrido un error inesperado ${error}` }
-            )
+        } catch (error:any) {
+            errorHandler(error, req, res)
         }
 
     }
@@ -35,10 +33,8 @@ export class TruckController {
                 return res.status(200).json({ message: "no hay trucks registrados aun" })
             }
             return res.status(200).json({ trucks })
-        } catch (error) {
-            res.status(500).json(
-                { message: `A ocurrido un error inesperado ${error}` }
-            )
+        } catch (error:any) {
+            errorHandler(error, req, res)
         }
 
     }
@@ -55,10 +51,8 @@ export class TruckController {
             const updateTruck = await this.truckService.updateTruck(updateTruckDto)
             console.log(updateTruck)
             return res.status(200).json({ message: "actualizado" })
-        } catch (error) {
-            res.status(500).json(
-                { message: `A ocurrido un error inesperado ${error}` }
-            )
+        } catch (error:any) {
+            errorHandler(error, req, res)
         }
     }
     async deleteTruck(req: Request, res: Response) {
@@ -81,7 +75,7 @@ export class TruckController {
                 throw  new NotFoudError(`El truck con el id: ${id} no existe`);
             }
         } catch (error: any) {
-            return res.status(500).json({ message: `Ha ocurrido un error inesperado: ${error.message}` });
+            errorHandler(error, req, res)
         }
     }
     
@@ -94,3 +88,4 @@ export class TruckController {
     }
 
 }
+
