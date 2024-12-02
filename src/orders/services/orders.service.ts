@@ -1,6 +1,6 @@
 import { ObjectId } from "mongodb";
 import { connectToDatabase } from "../../conectDB";
-import { CreateOrderDto, UpdateStatusDto } from "../model/order.entity";
+import { CreateOrderDto, UpdateOrderDto, UpdateStatusDto } from "../model/order.entity";
 import { NotFoudError } from "../../errors";
 import { StatusOrders } from "../model/ordersDto";
 
@@ -70,38 +70,63 @@ export class OrderService {
 
     async changeStatus(updateStatusDto: UpdateStatusDto) {
         try {
-        const orderCollection = (await connectToDatabase()).collection(this.ordersCollection)
+            const orderCollection = (await connectToDatabase()).collection(this.ordersCollection)
 
-        const orderChanged = await orderCollection.findOneAndUpdate(
-            {_id: new ObjectId(updateStatusDto._id)},
-            { $set: {status: updateStatusDto.status}},
-            { returnDocument: "after" }
-        )
-        if (orderChanged === null) {
-            throw new NotFoudError(`no se encontro la orden con el id: ${updateStatusDto._id}`)
-        }
-        console.log(orderChanged)
-     
+            const orderChanged = await orderCollection.findOneAndUpdate(
+                { _id: new ObjectId(updateStatusDto._id) },
+                { $set: { status: updateStatusDto.status } },
+                { returnDocument: "after" }
+            )
+            if (orderChanged === null) {
+                throw new NotFoudError(`no se encontro la orden con el id: ${updateStatusDto._id}`)
+            }
+            return orderChanged
         } catch (error) {
             throw error
         }
     }
 
     async deleteOrder(_id: string) {
-       try {
-        const orderCollection = (await connectToDatabase()).collection(this.ordersCollection)
+        try {
+            const orderCollection = (await connectToDatabase()).collection(this.ordersCollection)
 
-        const deleteOrder = await orderCollection.findOneAndDelete(
-            {_id: new ObjectId(_id)}
-        )
-        console.log(deleteOrder)
-        if (deleteOrder === null) {
-            throw new NotFoudError(`no se encontro la orden con el id: ${_id}`)
+            const deleteOrder = await orderCollection.findOneAndDelete(
+                { _id: new ObjectId(_id) }
+            )
+            if (deleteOrder === null) {
+                throw new NotFoudError(`no se encontro la orden con el id: ${_id}`)
+            }
+            return deleteOrder
+        } catch (error) {
+            throw error
         }
-        return deleteOrder
-       } catch (error) {
-        throw error
-       }
+    }
+
+    async updateOrderById(updateOrderDto: UpdateOrderDto) {
+        try {
+            const update = Object.fromEntries(
+                Object.entries(updateOrderDto).filter(([_, value]) => value !== undefined)
+            );
+            for (const key of ["_id", "user", "truck", "pickup", "dropoff"]) {
+                if (update[key]) {
+                    update[key] = new ObjectId(update[key]);
+                }
+            }
+            const ordercollection = (await connectToDatabase()).collection(this.ordersCollection)
+            const order = await ordercollection.findOneAndUpdate(
+                { _id: new ObjectId(updateOrderDto._id) },
+                { $set: update },
+                { returnDocument: "after" }
+            );
+            if (order === null) {
+                throw new NotFoudError(`no se encontro la orden con el id: ${updateOrderDto._id}`)
+            }
+            return order
+
+        } catch (error) {
+            throw error
+
+        }
     }
 
 }

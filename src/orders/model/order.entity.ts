@@ -1,6 +1,7 @@
 import { ObjectId } from "mongodb";
 import { StatusOrders } from "./ordersDto";
 import { IsEmpty, IsEnum, IsMongoId, IsNotEmpty, IsOptional } from "class-validator";
+import { Transform } from "class-transformer";
 
 
 export class CreateOrderDto {
@@ -34,44 +35,48 @@ export class CreateOrderDto {
     }
 }
 
-export class UpdateDto {
+export class UpdateOrderDto {
+
+    @IsNotEmpty()
+    @IsMongoId()
+    @Transform(({value}) => new ObjectId(value))
+    _id: ObjectId;
 
     @IsOptional()
     @IsNotEmpty()
     @IsMongoId()
-    _id: string;
+    @Transform(({value}) => new ObjectId(value))
+    user?: ObjectId;
 
     @IsOptional()
     @IsNotEmpty()
     @IsMongoId()
-    user: ObjectId;
-
-    @IsOptional()
-    @IsNotEmpty()
-    @IsMongoId()
-    truck: ObjectId;
+    @Transform(({value}) => new ObjectId(value))
+    truck?: ObjectId;
 
     @IsOptional()
     @IsNotEmpty()
     @IsEnum(StatusOrders)
-    status: StatusOrders;
+    status?: StatusOrders;
 
     @IsOptional()
     @IsNotEmpty()
     @IsMongoId()
-    pickup: ObjectId;
+    @Transform(({value}) => new ObjectId(value))
+    pickup?: ObjectId;
 
     @IsOptional()
     @IsNotEmpty()
     @IsMongoId()
-    dropoff: ObjectId;
+    @Transform(({value}) => new ObjectId(value))
+    dropoff?: ObjectId;
     constructor(
-        _id: string,
-        user: ObjectId,
-        truck: ObjectId,
-        status: StatusOrders,
-        pickup: ObjectId,
-        dropoff: ObjectId,
+        _id: ObjectId,
+        user?: ObjectId,
+        truck?: ObjectId,
+        status?: StatusOrders,
+        pickup?: ObjectId,
+        dropoff?: ObjectId,
     ) {
         this._id = _id
         this.user = user,

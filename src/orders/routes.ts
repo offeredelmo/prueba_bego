@@ -30,6 +30,14 @@ orderRoutes.delete('/:_id', async (req, res, next) => {
     }
 });
 
+orderRoutes.patch('/', async (req, res, next) => {
+    try {
+        await locationController.updateOrder(req, res);
+    } catch (error) {
+        next(error); // Pasar errores al middleware de manejo de errores
+    }
+});
+
 orderRoutes.patch('/status/', async (req, res, next) => {
     try {
         await locationController.changeStatus(req, res);
