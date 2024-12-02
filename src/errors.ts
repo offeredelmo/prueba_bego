@@ -1,4 +1,4 @@
-
+import { NextFunction, Request, Response } from "express";
 export class NotFoudError extends Error {
     constructor(message: string) {
         super(message);
@@ -26,3 +26,27 @@ export class EnvironmentVariableError extends Error {
         this.name = "EnvironmentVariableError";
     }
 }
+
+export class DuplicateKeyError extends Error {
+    constructor(message: string = "La clave ya existe en el sistema") {
+        super(message);
+        this.name = "DuplicateKeyError";
+    }
+}
+
+export const errorHandler = (err: Error, req: Request, res: Response): void => {
+    if (err instanceof NotFoudError) {
+        res.status(404).json({ error: err.message });
+    } else if (err instanceof UnauthorizedError) {
+        res.status(401).json({ error: err.message });
+    } else if (err instanceof BadRequestError) {
+        res.status(400).json({ error: err.message });
+    } else if (err instanceof EnvironmentVariableError) {
+        res.status(500).json({ error: err.message });
+    } else if (err instanceof DuplicateKeyError) {
+        res.status(409).json({ error: err.message });
+    } else {
+        console.error("Error inesperado:", err);
+        res.status(500).json({ error: "Ha ocurrido un error inesperado" });
+    }
+};

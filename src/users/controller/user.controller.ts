@@ -2,6 +2,7 @@ import { IsEmail, validate } from "class-validator";
 import { CreateUserDtoAndLogin } from "../model/user.dto";
 import { Request, Response } from "express";
 import { UserService } from "../service/user.service";
+import { errorHandler } from "../../errors";
 
 export class UserController {
 
@@ -14,12 +15,14 @@ export class UserController {
             await this.validateDTO(createUserDto, res)
             const newUser = await this.userService.createUser(createUserDto)
             return res.status(201).json(newUser)
-        } catch (error) {
+        } catch (error:any) {
+            errorHandler(error, req,res)
             res.status(500).json(
                { message: `A ocurrido un error inesperado ${error}`}
             )
         }
     }
+
 
     async logIn(req: Request, res: Response) {
         try {
@@ -31,7 +34,8 @@ export class UserController {
            } else {
             res.status(400).json({"message": "Error en las credenciales",})
            }
-        } catch (error) {
+        } catch (error:any) {
+            errorHandler(error, req,res)
             res.status(500).json(
                { message: `A ocurrido un error al intentar iniciar sesion ${error}`}
             )
@@ -47,7 +51,4 @@ export class UserController {
             throw res.status(400).json({ message: 'Validation failed', errors: validateDto })
         }
     }
-
-
-    
 }

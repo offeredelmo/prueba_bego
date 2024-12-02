@@ -2,7 +2,7 @@ import { CreateUserDtoAndLogin } from "../model/user.dto";
 import { connectToDatabase } from "../../conectDB"
 import bcrypt from 'bcrypt';
 import jwt from "jsonwebtoken";
-import { EnvironmentVariableError, UnauthorizedError } from "../../errors";
+import { DuplicateKeyError, EnvironmentVariableError, UnauthorizedError } from "../../errors";
 
 
 export class UserService {
@@ -18,7 +18,10 @@ export class UserService {
             const result = await userCollection.insertOne(newUser)
             return { message: '  Usuario creado', id: result.insertedId, email: newUser.email }
         } catch (error: any) {
-          throw error
+            if (error.code === 11000) {
+                throw new DuplicateKeyError(`El correo electrónico ${error.keyValue["email"]} ya está registrado.`);
+            }
+            throw error
         }
     }
 
@@ -32,6 +35,7 @@ export class UserService {
                 throw new UnauthorizedError("error de credenciales") //no se encontro el usuario
             }
             const passwordValidate = await bcrypt.compareSync(loginUserDto.password, user.password); // true
+            console.log(passwordValidate)
             if (!passwordValidate) {
                 throw new UnauthorizedError("error de credenciales")
             }
@@ -39,7 +43,7 @@ export class UserService {
             const payload = {
                 user: user._id,
                 email: user.email
-                
+
             }
             const token = jwt.sign(
                 { data: payload },
