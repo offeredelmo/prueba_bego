@@ -33,6 +33,13 @@ export class DuplicateKeyError extends Error {
         this.name = "DuplicateKeyError";
     }
 }
+export class InvalidPlaceIdError extends Error {
+    constructor(message: string = "El parámetro 'place_id' es inválido o falta") {
+        super(message);
+        this.name = "InvalidPlaceIdError";
+    }
+}
+
 
 export const errorHandler = (err: Error, req: Request, res: Response): void => {
     if (err instanceof NotFoudError) {
@@ -45,6 +52,8 @@ export const errorHandler = (err: Error, req: Request, res: Response): void => {
         res.status(500).json({ error: err.message });
     } else if (err instanceof DuplicateKeyError) {
         res.status(409).json({ error: err.message });
+    } else if (err instanceof InvalidPlaceIdError) {
+        res.status(400).json({ error: err.message });
     } else {
         console.error("Error inesperado:", err);
         res.status(500).json({ error: "Ha ocurrido un error inesperado" });

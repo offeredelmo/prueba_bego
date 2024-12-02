@@ -4,7 +4,7 @@ import { CreateLocationDto, DeleteLocationDto, UpdateLocationDto } from "../mode
 import { ObjectId } from "mongodb";
 import { validate } from "class-validator";
 import { LocationService } from "../services/location.service";
-import { errorHandler, NotFoudError, UnauthorizedError } from "../../errors";
+import { errorHandler, InvalidPlaceIdError, NotFoudError, UnauthorizedError } from "../../errors";
 
 
 
@@ -63,20 +63,22 @@ export class LocationController {
     async updateLocation(req: Request, res: Response) {
         try {
             const _id = req.body._id
-            if (!_id) {
-                return res.status(404).json({ message: "falta el _id" })
+            const placeId = req.body.place_id
+            if (!placeId) {
+                return res.status(404).json({ message: "falto un place_id" })
             }
+            const dateLocation = await this.getPlaceDetails(placeId, res);
+
             const updateLocationDto = new UpdateLocationDto(
-                req.body.address,
-                req.body.place_id,
-                req.body.latitude,
-                req.body.longitude,
-                req.body.user_id
+                dateLocation.formatted_address as string,
+                placeId,
+                dateLocation.geometry?.location.lat as number,
+                dateLocation?.geometry?.location.lng as number,
             )
 
             await this.validateDTO(updateLocationDto, res)
-            const result = await this.locationService.updateLocation(_id, updateLocationDto)
-            return res.status(200).json({ message: "actualizado" })
+            const location = await this.locationService.updateLocation(_id, updateLocationDto)
+            return res.status(200).json({ message: "actualizado", location  })
         } catch (error: any) {
             errorHandler(error, req, res)
         }
@@ -115,8 +117,12 @@ export class LocationController {
                     language: Language.es,
                 },
             });
-            return response.data.result; // Retorna los detalles del lugar
-        } catch (error) {
+            return response.data.result; 
+        } catch (error:any) {
+            const { data, status } = error.response;
+            if (status === 400 && data.status === "INVALID_REQUEST" && data.error_message.includes("Invalid 'placeid' parameter")) {
+                throw new InvalidPlaceIdError(data.error_message);
+            }
             throw error
         }
     }

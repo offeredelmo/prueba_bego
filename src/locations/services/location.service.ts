@@ -6,12 +6,21 @@ import { NotFoudError, UnauthorizedError } from "../../errors";
 
 export class LocationService {
 
-    nameCollection = "location"
+    locationCollection = "location"
+    userCollection = "users"
+
+
 
 
     async createLocationByPlaceId(createLocationDto: CreateLocationDto) {
         try {
-            const locationCollection = (await connectToDatabase()).collection(this.nameCollection);
+            const userCollection = (await connectToDatabase()).collection(this.userCollection);
+            const user = await userCollection.findOne({_id: new ObjectId(createLocationDto.user_id)})
+            if (!user) {
+                throw new NotFoudError(`No se encontro el usuario con el id: ${createLocationDto.user_id}`)
+            }
+
+            const locationCollection = (await connectToDatabase()).collection(this.locationCollection);
             const result = await locationCollection.insertOne(createLocationDto);
 
             if (!result.acknowledged) {
@@ -35,7 +44,7 @@ export class LocationService {
 
     async listLocations() {
         try {
-             const userCollection = (await connectToDatabase()).collection(this.nameCollection);
+             const userCollection = (await connectToDatabase()).collection(this.locationCollection);
         const result = await userCollection.find({}).toArray();
         return result;
         } catch (error) {
@@ -47,28 +56,22 @@ export class LocationService {
 
     async updateLocation(_id: string, updateLocationDto: UpdateLocationDto) {
         try {
-            const locationCollection = (await connectToDatabase()).collection(this.nameCollection);
-
-            const location = await locationCollection.findOne(
-                { _id: new ObjectId(_id) },
-            );
-            if (!location) {
-                throw new NotFoudError(`no se encontro la location con el id: ${_id}`)
-            }
+            const locationCollection = (await connectToDatabase()).collection(this.locationCollection);
 
             const update = Object.fromEntries( //elimina los atributos undefined
                 Object.entries(updateLocationDto).filter(([_, value]) => value !== undefined)
             );
 
-            const result = await locationCollection.updateOne(
+            const result = await locationCollection.findOneAndUpdate(
                 { _id: new ObjectId(_id) },
                 { $set: update }
             );
 
-            if (result.matchedCount === 0) {
-                throw new Error("No se pudo actualizar el camión");
+            if (result === null) {
+                throw new NotFoudError(`no se encontro la location con el id: ${_id}`)
             }
-            return result.matchedCount
+            console.log(result)
+            return result
         } catch (error) {
             throw error
 
@@ -77,7 +80,7 @@ export class LocationService {
 
     async deleteLocation(deleteLocationDto: DeleteLocationDto) {
         try {
-            const locationCollection = (await connectToDatabase()).collection(this.nameCollection);
+            const locationCollection = (await connectToDatabase()).collection(this.locationCollection);
             const location = await locationCollection.findOne(
                 { _id: new ObjectId(deleteLocationDto._id) },
             );

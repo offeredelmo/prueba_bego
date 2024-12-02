@@ -40,6 +40,8 @@ export class CreateLocationDto {
 }
 
 export class UpdateLocationDto {
+    
+
     @IsOptional()
     @IsNotEmpty()
     @IsString()
