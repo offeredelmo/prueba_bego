@@ -11,10 +11,7 @@ export class UserController {
     async createUser(req: Request, res: Response) {
         try {
             const createUserDto = new CreateUserDtoAndLogin(req.body.email, req.body.password)
-            const validateDto = await validate(createUserDto)
-            if (validateDto.length > 0) {
-                return res.status(400).json({ message: 'Validation failed', errors: validateDto})
-            }
+            await this.validateDTO(createUserDto, res)
             const newUser = await this.userService.createUser(createUserDto)
             return res.status(201).json(newUser)
         } catch (error) {
@@ -28,10 +25,7 @@ export class UserController {
         try {
            if (req.body.email) {
             const loginUserDto = new CreateUserDtoAndLogin(req.body.email, req.body.password) //validar que es un correo 
-            const validateDto = await validate(loginUserDto)
-            if (validateDto.length > 0) {
-                return res.status(400).json({ message: 'Validation failed', errors: validateDto})
-            }
+            await this.validateDTO(loginUserDto, res)
             const loginUser = await this.userService.logIn(loginUserDto) 
             return res.status(200).json(loginUser)
            } else {
@@ -47,7 +41,12 @@ export class UserController {
 
 
 
-
+    async validateDTO(dto: any, res: Response) {
+        const validateDto = await validate(dto)
+        if (validateDto.length > 0) {
+            throw res.status(400).json({ message: 'Validation failed', errors: validateDto })
+        }
+    }
 
 
     

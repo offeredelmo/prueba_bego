@@ -6,7 +6,6 @@ const userController = new UserController();
 
 userRouters.post('/add', async (req, res, next) => {
     try {
-        console.log("hola pase:", req.body)
         await userController.createUser(req, res);
     } catch (error) {
         next(error); // Pasar errores al middleware de manejo de errores
@@ -16,7 +15,6 @@ userRouters.post('/add', async (req, res, next) => {
 
 userRouters.post('/login', async (req, res, next) => {
     try {
-        console.log("hola pase:", req.body)
         await userController.logIn(req, res);
     } catch (error) {
         next(error); // Pasar errores al middleware de manejo de errores
